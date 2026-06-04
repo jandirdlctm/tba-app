@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>TBA Construction — App Guide</title>
+    <style>
+      :root {
+        --brand: #b0875a;
+        --brand-ink: #8d6a43;
+        --ink: #1f1d1b;
+        --muted: #6f6b66;
+        --border: #e4e1dd;
+        --bg: #f6f5f3;
+        --active: #1d9e75;
+        --upcoming: #ef9f27;
+        --completed: #888780;
+      }
+
+      @page {
+        size: Letter;
+        margin: 16mm 14mm;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        color: var(--ink);
+        font-size: 11pt;
+        line-height: 1.5;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      /* Cover header */
+      .cover {
+        text-align: center;
+        padding: 6mm 0 8mm;
+        border-bottom: 1.5px solid var(--border);
+        margin-bottom: 8mm;
+      }
+      .cover img {
+        width: 96px;
+        height: auto;
+        margin: 0 auto 6px;
+        display: block;
+      }
+      .cover h1 {
+        margin: 6px 0 2px;
+        font-size: 24pt;
+        letter-spacing: 0.3px;
+      }
+      .cover .tag {
+        margin: 0;
+        color: var(--muted);
+        font-size: 11pt;
+      }
+      .cover .url {
+        display: inline-block;
+        margin-top: 10px;
+        padding: 5px 14px;
+        border: 1px solid var(--brand);
+        border-radius: 999px;
+        color: var(--brand-ink);
+        font-weight: 600;
+        font-size: 10.5pt;
+      }
+
+      h2 {
+        font-size: 15pt;
+        margin: 16px 0 6px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid var(--border);
+        break-after: avoid;
+      }
+      h3 {
+        font-size: 12pt;
+        margin: 12px 0 4px;
+        color: var(--brand-ink);
+        break-after: avoid;
+      }
+      p {
+        margin: 6px 0;
+      }
+      ul,
+      ol {
+        margin: 6px 0;
+        padding-left: 20px;
+      }
+      li {
+        margin: 3px 0;
+      }
+      strong {
+        color: var(--ink);
+      }
+      a {
+        color: var(--brand-ink);
+        text-decoration: none;
+      }
+      code {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 1px 5px;
+        font-size: 9.5pt;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+
+      /* Intro callout */
+      .lead {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 14px;
+        margin: 10px 0 4px;
+      }
+
+      /* Role table */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 8px 0;
+        font-size: 10pt;
+      }
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 7px 9px;
+        text-align: left;
+        vertical-align: top;
+      }
+      thead th {
+        background: #efe7dc;
+        color: var(--brand-ink);
+      }
+      tbody th {
+        background: var(--bg);
+        font-weight: 600;
+      }
+
+      /* Status legend chips */
+      .legend {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin: 8px 0;
+      }
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 600;
+        font-size: 10pt;
+      }
+      .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+
+      /* Tip / note box */
+      .note {
+        border-left: 3px solid var(--brand);
+        background: #faf6f0;
+        padding: 8px 12px;
+        margin: 8px 0;
+        border-radius: 0 8px 8px 0;
+        font-size: 10pt;
+      }
+
+      .section {
+        break-inside: avoid;
+      }
+      .pagebreak {
+        break-before: page;
+      }
+
+      footer {
+        margin-top: 14mm;
+        padding-top: 6px;
+        border-top: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 9pt;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="cover">
+      <img src="__LOGO__" alt="TBA Construction" />
+      <h1>App Guide</h1>
+      <p class="tag">TBA Construction — Project Management</p>
+      <span class="url">tba-app.vercel.app</span>
+    </header>
+
+    <p class="lead">
+      Welcome! This is your one place to see every job on a map, track what's going on, manage your
+      crew, and keep hours, materials, and photos together per project. This guide walks you through
+      everything — no technical background needed. Open the app in any phone or computer web browser.
+    </p>
+
+    <section class="section">
+      <h2>The two kinds of accounts</h2>
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Admin (owner / manager)</th>
+            <th>Worker (subs / crew)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th>Sees</th><td>Every project</td><td>Only projects you assign them</td></tr>
+          <tr><th>Map</th><td>All pins</td><td>Only their assigned pins</td></tr>
+          <tr><th>Add / edit projects</th><td>Yes</td><td>No</td></tr>
+          <tr><th>Materials &amp; costs</th><td>Sees and edits</td><td>Never sees them at all</td></tr>
+          <tr><th>Hours</th><td>Sees everyone's totals</td><td>Logs only their own</td></tr>
+          <tr><th>Photos</th><td>Yes</td><td>Yes (on assigned jobs)</td></tr>
+          <tr><th>Manage workers</th><td>Yes</td><td>No</td></tr>
+        </tbody>
+      </table>
+      <p>
+        The key idea: <strong>workers see only what they need.</strong> They can log hours and snap
+        job photos, but they can't see your costs, materials, or each other's hours. That's locked
+        down at the data level — not just hidden on screen.
+      </p>
+    </section>
+
+    <section class="section">
+      <h2>Signing in</h2>
+      <ol>
+        <li>Go to <strong>tba-app.vercel.app</strong>.</li>
+        <li>Enter your <strong>email</strong> and <strong>password</strong>.</li>
+        <li>Tap <strong>Sign in</strong>.</li>
+      </ol>
+      <p>You stay signed in on that device until you log out. <strong>To log out:</strong> tap the menu (☰, top-left) → <strong>Log out</strong>.</p>
+    </section>
+
+    <section class="section">
+      <h2>The map (your home screen)</h2>
+      <p>When you sign in you land on the <strong>Project overview</strong> map. Every job is a colored pin:</p>
+      <div class="legend">
+        <span><span class="dot" style="background: var(--active)"></span> Green = Active (work happening now)</span>
+        <span><span class="dot" style="background: var(--upcoming)"></span> Amber = Upcoming (scheduled)</span>
+        <span><span class="dot" style="background: var(--completed)"></span> Gray = Completed</span>
+      </div>
+      <p><strong>Things you can do here:</strong></p>
+      <ul>
+        <li><strong>Filter:</strong> tap All / Active / Upcoming / Completed to show just those pins.</li>
+        <li><strong>Tap a pin</strong> for a quick card: name, address, status, work type, and the "Needs" note.</li>
+        <li><strong>View details →</strong> on that card opens the full project page.</li>
+        <li><strong>Locate me</strong> (◎, bottom-right) recenters the map on where you are.</li>
+        <li><strong>+ Add</strong> (top-right, admin only) starts a new project.</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>Adding a new project (admin)</h2>
+      <ol>
+        <li>On the map, tap <strong>+ Add</strong> (top-right).</li>
+        <li>Fill in the form — <strong>Project name</strong> and <strong>Address</strong> are required; work type, status, dates, and a scope/needs note are optional.</li>
+        <li>Tap <strong>Save &amp; drop pin</strong>.</li>
+      </ol>
+      <p>The app looks up the address and drops the pin automatically. If it can't find the address, it warns you — fix the address and save again, or save anyway and correct it later.</p>
+    </section>
+
+    <section class="section pagebreak">
+      <h2>The project detail page</h2>
+      <p>Tap any pin → <strong>View details →</strong>. This is the full record for one job. Admins see four tabs; workers see three (no Materials).</p>
+
+      <h3>Overview tab</h3>
+      <ul>
+        <li><strong>Job stage tracker: Demo / Prep → Build → Finish.</strong> This is separate from the green/amber/gray status — it tracks where the physical work is. As admin, tap a stage to move the job along.</li>
+        <li><strong>Details</strong> — status, address, work type, dates. Tap <strong>Edit</strong> to change them (admin).</li>
+        <li><strong>Scope / needs</strong> — the working note for the job. Tap <strong>Edit</strong> to update it.</li>
+        <li><strong>Assigned workers</strong> (admin) — covered in "Managing your crew" below.</li>
+      </ul>
+
+      <h3>Materials tab (admin only)</h3>
+      <ul>
+        <li>Tap <strong>+ Add material</strong>, then enter the item, quantity, unit cost, and status (<strong>Needed / Ordered / Received</strong>).</li>
+        <li>The app multiplies quantity × cost and keeps a <strong>running total</strong> at the top.</li>
+        <li><strong>Attach a receipt photo</strong> to any line — choose Receipt photo and pick or snap a picture.</li>
+        <li>Edit or delete any line anytime. <em>Workers never see this tab or any of these numbers.</em></li>
+      </ul>
+
+      <h3>Hours tab</h3>
+      <ul>
+        <li><strong>Workers</strong> see My hours: tap <strong>+ Add hours</strong>, pick the date, enter hours, add an optional note. They can edit/delete their own entries.</li>
+        <li><strong>Admins</strong> see the rollup: total hours per worker plus every entry, so you know who logged what.</li>
+      </ul>
+
+      <h3>Photos tab</h3>
+      <ul>
+        <li>Anyone assigned to the job can add photos — choose Photo, pick or snap an image, add an optional caption.</li>
+        <li>Tap a photo to view it full-size. Delete your own (admins can delete any).</li>
+        <li>Great for progress shots, before/after, and documenting issues on site.</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>Managing your crew</h2>
+      <h3>Add a worker</h3>
+      <ol>
+        <li>Menu (☰, top-left) → <strong>Manage workers</strong>.</li>
+        <li>Under Add a worker, enter their <strong>name</strong>, an <strong>email</strong>, and a <strong>temporary password</strong> (6+ characters).</li>
+        <li>Tap <strong>Create worker</strong>.</li>
+        <li>Hand the worker that email + password — they sign in with it.</li>
+      </ol>
+      <div class="note">
+        The email doesn't have to be a real inbox — it's just their username. Use something easy like
+        <code>mike@tbacrew.com</code> if you like.
+      </div>
+
+      <h3>Assign a worker to a job</h3>
+      <p>A worker sees <strong>nothing</strong> until you assign them to a project.</p>
+      <ol>
+        <li>Open the project → <strong>Overview</strong> tab → <strong>Assigned workers</strong>.</li>
+        <li>Pick the worker from the dropdown → <strong>Assign</strong>.</li>
+        <li>To remove them, tap <strong>Remove</strong> next to their name.</li>
+      </ol>
+      <p>Assign the same worker to as many jobs as you need.</p>
+    </section>
+
+    <section class="section">
+      <h2>A worker's day</h2>
+      <ol>
+        <li>Sign in at tba-app.vercel.app with the email/password you gave them.</li>
+        <li>Their map shows only their assigned jobs.</li>
+        <li>Tap a job → <strong>View details</strong>.</li>
+        <li><strong>Hours tab → + Add hours</strong> to log time for the day.</li>
+        <li><strong>Photos tab</strong> to add job-site pictures.</li>
+      </ol>
+      <p>Simple on a phone, in the field.</p>
+    </section>
+
+    <section class="section">
+      <h2>Put it on your phone</h2>
+      <ul>
+        <li><strong>iPhone (Safari):</strong> open the site → tap <strong>Share</strong> → <strong>Add to Home Screen</strong>.</li>
+        <li><strong>Android (Chrome):</strong> open the site → tap the <strong>⋮</strong> menu → <strong>Add to Home screen</strong>.</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>Quick troubleshooting</h2>
+      <ul>
+        <li><strong>"I can't see any projects."</strong> If you're a worker, you haven't been assigned to a job yet — ask your admin. If you're the admin and the map is empty, you haven't added any projects yet.</li>
+        <li><strong>"A new project's pin isn't on the map."</strong> The address couldn't be located. Open the project, tap Edit, and correct the address.</li>
+        <li><strong>"I forgot my password."</strong> Ask your admin to reset it for you.</li>
+        <li><strong>"A worker says they can see costs."</strong> They can't — materials and costs are completely hidden from worker accounts. Double-check they're in their own worker account, not an admin account.</li>
+      </ul>
+    </section>
+
+    <footer>
+      TBA Construction — App Guide · tba-app.vercel.app
+    </footer>
+  </body>
+</html>

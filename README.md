@@ -8,6 +8,9 @@ projects. Nothing more.
 Built with React (Vite) + TypeScript, Supabase (Postgres), React Router, and
 react-leaflet over free OpenStreetMap tiles.
 
+> **Deployment:** hosted on Vercel and connected to this GitHub repo — every push
+> to `main` auto-deploys to production (`tba-app.vercel.app`).
+
 ---
 
 ## What's in Phase 1

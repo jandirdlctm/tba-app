@@ -146,8 +146,8 @@ button {
   color: var(--ink);
 }
 .chip--selected {
-  background: var(--ink);
-  border-color: var(--ink);
+  background: var(--brand);
+  border-color: var(--brand);
   color: #fff;
 }
 

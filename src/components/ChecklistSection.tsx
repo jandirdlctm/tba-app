@@ -1,23 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  TouchSensor,
-  KeyboardSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  SortableContext,
-  arrayMove,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import {
   getChecklistItems,
   addChecklistItem,
   updateChecklistItem,
@@ -31,8 +13,7 @@ interface ChecklistSectionProps {
 }
 
 // Apple-Notes-style scope checklist. Any assigned user can add, check, edit,
-// reorder, and delete. Reordering uses @dnd-kit so press-and-drag works on
-// touch (long-press the handle) and mouse alike. Interactions are optimistic.
+// reorder, and delete. Interactions are optimistic so they feel instant.
 export default function ChecklistSection({ projectId }: ChecklistSectionProps) {
   const [items, setItems] = useState<ChecklistItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,15 +24,10 @@ export default function ChecklistSection({ projectId }: ChecklistSectionProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
 
+  // Drag reorder (pointer devices)
+  const dragFrom = useRef<number | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
   const newInputRef = useRef<HTMLInputElement>(null);
-
-  // Sensors: mouse drags after a small move; touch needs a short long-press so
-  // dragging the handle doesn't fight list scrolling; keyboard for a11y.
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
 
   useEffect(() => {
     let active = true;
@@ -98,7 +74,7 @@ export default function ChecklistSection({ projectId }: ChecklistSectionProps) {
       const created = await addChecklistItem(projectId, text, items.length);
       setItems((prev) => [...prev, created]);
     } catch (err) {
-      setNewText(text);
+      setNewText(text); // restore so the user doesn't lose it
       setError(err instanceof Error ? err.message : 'Could not add item.');
     } finally {
       newInputRef.current?.focus();
@@ -125,6 +101,7 @@ export default function ChecklistSection({ projectId }: ChecklistSectionProps) {
     setEditingId(null);
     if (!original || text === original.text) return;
     if (!text) {
+      // Emptying an item deletes it (Apple-Notes behavior).
       await remove(original);
       return;
     }
@@ -149,23 +126,28 @@ export default function ChecklistSection({ projectId }: ChecklistSectionProps) {
     }
   }
 
-  // --- reorder (optimistic) ---
-  async function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const oldIndex = items.findIndex((i) => i.id === active.id);
-    const newIndex = items.findIndex((i) => i.id === over.id);
-    if (oldIndex < 0 || newIndex < 0) return;
-
-    const prev = items;
-    const next = arrayMove(items, oldIndex, newIndex);
+  // --- reordering ---
+  async function persistOrder(next: ChecklistItem[]) {
     setItems(next);
     try {
       await reorderChecklist(next.map((it, idx) => ({ id: it.id, position: idx })));
     } catch (err) {
-      setItems(prev);
       setError(err instanceof Error ? err.message : 'Could not reorder.');
     }
+  }
+  function move(from: number, to: number) {
+    if (to < 0 || to >= items.length || from === to) return;
+    const next = [...items];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    void persistOrder(next);
+  }
+  function onDrop(to: number) {
+    const from = dragFrom.current;
+    dragFrom.current = null;
+    setDragOver(null);
+    if (from === null || from === to) return;
+    move(from, to);
   }
 
   if (loading) return <p className="muted-note">Loading checklist…</p>;
@@ -189,26 +171,84 @@ export default function ChecklistSection({ projectId }: ChecklistSectionProps) {
 
       {error && <div className="banner banner--error">{error}</div>}
 
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
-          <ul className="check-list">
-            {items.map((item) => (
-              <SortableItem
-                key={item.id}
-                item={item}
-                editing={editingId === item.id}
-                editingText={editingText}
-                setEditingText={setEditingText}
-                onToggle={() => toggle(item)}
-                onStartEdit={() => startEdit(item)}
-                onCommitEdit={commitEdit}
-                onCancelEdit={() => setEditingId(null)}
-                onDelete={() => remove(item)}
+      <ul className="check-list">
+        {items.map((item, i) => (
+          <li
+            key={item.id}
+            className={`check-item${item.done ? ' check-item--done' : ''}${dragOver === i ? ' check-item--dragover' : ''}`}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragOver(i);
+            }}
+            onDrop={() => onDrop(i)}
+          >
+            {/* drag handle (pointer) */}
+            <span
+              className="check-item__handle"
+              draggable
+              onDragStart={() => (dragFrom.current = i)}
+              onDragEnd={() => {
+                dragFrom.current = null;
+                setDragOver(null);
+              }}
+              aria-hidden="true"
+              title="Drag to reorder"
+            >
+              ⠿
+            </span>
+
+            <button
+              type="button"
+              className="check-box"
+              role="checkbox"
+              aria-checked={item.done}
+              onClick={() => toggle(item)}
+            >
+              {item.done && (
+                <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 13l4 4L19 7" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+            </button>
+
+            {editingId === item.id ? (
+              <input
+                className="check-item__edit"
+                value={editingText}
+                autoFocus
+                onChange={(e) => setEditingText(e.target.value)}
+                onBlur={commitEdit}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    void commitEdit();
+                  } else if (e.key === 'Escape') {
+                    setEditingId(null);
+                  }
+                }}
               />
-            ))}
-          </ul>
-        </SortableContext>
-      </DndContext>
+            ) : (
+              <span className="check-item__text" onClick={() => startEdit(item)}>
+                {item.text}
+              </span>
+            )}
+
+            {/* up/down reorder — the touch-friendly fallback for drag */}
+            <span className="check-item__move">
+              <button type="button" aria-label="Move up" disabled={i === 0} onClick={() => move(i, i - 1)}>
+                ↑
+              </button>
+              <button type="button" aria-label="Move down" disabled={i === items.length - 1} onClick={() => move(i, i + 1)}>
+                ↓
+              </button>
+            </span>
+
+            <button type="button" className="check-item__del" aria-label="Delete item" onClick={() => remove(item)}>
+              ×
+            </button>
+          </li>
+        ))}
+      </ul>
 
       {/* Add row — type and press Enter to keep going */}
       <div className="check-add">
@@ -228,97 +268,5 @@ export default function ChecklistSection({ projectId }: ChecklistSectionProps) {
         )}
       </div>
     </section>
-  );
-}
-
-interface SortableItemProps {
-  item: ChecklistItem;
-  editing: boolean;
-  editingText: string;
-  setEditingText: (v: string) => void;
-  onToggle: () => void;
-  onStartEdit: () => void;
-  onCommitEdit: () => void;
-  onCancelEdit: () => void;
-  onDelete: () => void;
-}
-
-function SortableItem({
-  item,
-  editing,
-  editingText,
-  setEditingText,
-  onToggle,
-  onStartEdit,
-  onCommitEdit,
-  onCancelEdit,
-  onDelete,
-}: SortableItemProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: item.id,
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  return (
-    <li
-      ref={setNodeRef}
-      style={style}
-      className={`check-item${item.done ? ' check-item--done' : ''}${isDragging ? ' check-item--dragging' : ''}`}
-    >
-      {/* drag handle — only this starts a drag, so checkbox/text/scroll are free */}
-      <span
-        className="check-item__handle"
-        {...attributes}
-        {...listeners}
-        aria-label="Drag to reorder"
-        title="Drag to reorder"
-      >
-        ⠿
-      </span>
-
-      <button
-        type="button"
-        className="check-box"
-        role="checkbox"
-        aria-checked={item.done}
-        onClick={onToggle}
-      >
-        {item.done && (
-          <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M5 13l4 4L19 7" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        )}
-      </button>
-
-      {editing ? (
-        <input
-          className="check-item__edit"
-          value={editingText}
-          autoFocus
-          onChange={(e) => setEditingText(e.target.value)}
-          onBlur={onCommitEdit}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              onCommitEdit();
-            } else if (e.key === 'Escape') {
-              onCancelEdit();
-            }
-          }}
-        />
-      ) : (
-        <span className="check-item__text" onClick={onStartEdit}>
-          {item.text}
-        </span>
-      )}
-
-      <button type="button" className="check-item__del" aria-label="Delete item" onClick={onDelete}>
-        ×
-      </button>
-    </li>
   );
 }

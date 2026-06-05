@@ -678,7 +678,7 @@ button {
   color: var(--muted);
 }
 .tab--on {
-  background: var(--ink);
+  background: var(--brand);
   color: #fff;
 }
 

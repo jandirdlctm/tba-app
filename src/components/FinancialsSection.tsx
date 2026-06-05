@@ -92,11 +92,14 @@ export default function FinancialsSection({ projectId }: FinancialsSectionProps)
                 <input className="field__input" type="number" min="0" step="any" value={contract} onChange={(e) => setContract(e.target.value)} placeholder="What the job is sold for" />
               </label>
               <label className="field">
-                <span className="field__label">Labor rate ($/hr)</span>
-                <input className="field__input" type="number" min="0" step="any" value={rate} onChange={(e) => setRate(e.target.value)} placeholder="Crew cost per hour" />
+                <span className="field__label">Default labor rate ($/hr)</span>
+                <input className="field__input" type="number" min="0" step="any" value={rate} onChange={(e) => setRate(e.target.value)} placeholder="Fallback rate" />
               </label>
             </div>
-            <span className="field__hint">Labor cost = total logged hours × this rate.</span>
+            <span className="field__hint">
+              Labor cost uses each worker's own rate (set in Manage workers). This default only
+              applies to hours from workers without an individual rate.
+            </span>
             <div className="form__actions">
               <button type="button" className="btn btn--ghost" onClick={() => setEditing(false)} disabled={saving}>
                 Cancel
@@ -133,9 +136,7 @@ export default function FinancialsSection({ projectId }: FinancialsSectionProps)
             <dt>Labor</dt>
             <dd>
               − {usd.format(row?.labor_cost ?? 0)}{' '}
-              <span className="muted-note">
-                ({row?.labor_hours ?? 0} h × {usd.format(row?.labor_rate ?? 0)})
-              </span>
+              <span className="muted-note">({row?.labor_hours ?? 0} h logged)</span>
             </dd>
           </div>
           <div className="facts__row facts__row--total">

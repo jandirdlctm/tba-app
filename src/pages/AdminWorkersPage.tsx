@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 import { listProfiles, createWorker } from '../lib/auth';
+import { getWorkerRates, upsertWorkerRate } from '../lib/workerRates';
 import type { Profile } from '../types';
 
 // Admin-only: list everyone and create new worker accounts.
@@ -10,6 +11,7 @@ export default function AdminWorkersPage() {
   const navigate = useNavigate();
 
   const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [rates, setRates] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,12 +25,19 @@ export default function AdminWorkersPage() {
     try {
       setLoading(true);
       setError(null);
-      setProfiles(await listProfiles());
+      const [people, rateMap] = await Promise.all([listProfiles(), getWorkerRates()]);
+      setProfiles(people);
+      setRates(rateMap);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not load workers.');
     } finally {
       setLoading(false);
     }
+  }
+
+  async function saveRate(userId: string, hourlyRate: number) {
+    await upsertWorkerRate(userId, hourlyRate);
+    setRates((prev) => ({ ...prev, [userId]: hourlyRate }));
   }
 
   useEffect(() => {
@@ -110,19 +119,87 @@ export default function AdminWorkersPage() {
               {workers.length === 0 ? (
                 <p className="muted-note">No workers yet.</p>
               ) : (
-                <ul className="row-list row-list--bordered">
-                  {workers.map((w) => (
-                    <li key={w.id} className="row">
-                      <span className="row__main">{w.full_name || '(no name)'}</span>
-                      <span className="role-badge role-badge--worker">worker</span>
-                    </li>
-                  ))}
-                </ul>
+                <>
+                  <ul className="row-list row-list--bordered">
+                    {workers.map((w) => (
+                      <WorkerRow
+                        key={w.id}
+                        worker={w}
+                        rate={rates[w.id] ?? 0}
+                        onSaveRate={(r) => saveRate(w.id, r)}
+                      />
+                    ))}
+                  </ul>
+                  <p className="field__hint">
+                    Hourly rate = your fully-loaded labor cost for that worker. Used for job profit;
+                    never visible to workers.
+                  </p>
+                </>
               )}
             </>
           )}
         </section>
       </div>
     </div>
+  );
+}
+
+// A worker row with an inline hourly-rate editor (admin-only data).
+function WorkerRow({
+  worker,
+  rate,
+  onSaveRate,
+}: {
+  worker: Profile;
+  rate: number;
+  onSaveRate: (r: number) => Promise<void>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [val, setVal] = useState(String(rate));
+  const [saving, setSaving] = useState(false);
+
+  async function save() {
+    setSaving(true);
+    try {
+      await onSaveRate(Number(val) || 0);
+      setEditing(false);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <li className="row">
+      <span className="row__main">{worker.full_name || '(no name)'}</span>
+      {editing ? (
+        <span className="rate-edit">
+          $
+          <input
+            className="rate-edit__input"
+            type="number"
+            min="0"
+            step="any"
+            value={val}
+            onChange={(e) => setVal(e.target.value)}
+            autoFocus
+          />
+          /hr
+          <button type="button" className="link-btn" onClick={save} disabled={saving}>
+            {saving ? '…' : 'Save'}
+          </button>
+        </span>
+      ) : (
+        <button
+          type="button"
+          className="rate-pill"
+          onClick={() => {
+            setVal(String(rate));
+            setEditing(true);
+          }}
+        >
+          {rate > 0 ? `$${rate}/hr` : 'Set rate'}
+        </button>
+      )}
+    </li>
   );
 }

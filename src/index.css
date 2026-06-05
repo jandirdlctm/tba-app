@@ -1063,6 +1063,44 @@ button.stage__step:disabled {
   font-size: 15px !important;
 }
 
+/* Per-worker rate editor (Manage workers) */
+.rate-pill {
+  flex: 0 0 auto;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 0.5px solid var(--border);
+  background: var(--bg);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--brand-ink);
+}
+.rate-pill:hover {
+  border-color: var(--brand);
+}
+.rate-edit {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.rate-edit__input {
+  width: 64px;
+  padding: 5px 8px;
+  font-size: 14px;
+  font-family: inherit;
+  border: 0.5px solid var(--border);
+  border-radius: 6px;
+  outline: none;
+}
+.rate-edit__input:focus {
+  border-color: var(--brand);
+}
+.rate-edit .link-btn {
+  margin-left: 4px;
+}
+
 /* Portfolio KPI cards */
 .kpi-grid {
   display: grid;

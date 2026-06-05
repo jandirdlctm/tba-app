@@ -174,6 +174,13 @@ export interface ProjectFinancials {
   updated_at: string;
 }
 
+/** A worker's hourly COST rate (admin-only; never visible to the worker). */
+export interface WorkerRate {
+  user_id: string;
+  hourly_rate: number;
+  updated_at: string;
+}
+
 /** A computed profitability row (from the project_profitability() RPC). */
 export interface ProjectProfitability {
   project_id: string;

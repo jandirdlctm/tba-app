@@ -12,8 +12,13 @@ interface ChecklistSectionProps {
   projectId: string;
 }
 
+const byPosition = (a: ChecklistItem, b: ChecklistItem) => a.position - b.position;
+
 // Apple-Notes-style scope checklist. Any assigned user can add, check, edit,
-// reorder, and delete. Interactions are optimistic so they feel instant.
+// reorder, and delete. Checked items sink to the bottom so the to-dos stay on
+// top. Reordering applies only to the active (unchecked) items: drag the handle
+// on desktop, or use the up/down buttons (the only control shown on phones,
+// where the handle is hidden). Interactions are optimistic.
 export default function ChecklistSection({ projectId }: ChecklistSectionProps) {
   const [items, setItems] = useState<ChecklistItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,9 +29,9 @@ export default function ChecklistSection({ projectId }: ChecklistSectionProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
 
-  // Drag reorder (pointer devices)
-  const dragFrom = useRef<number | null>(null);
-  const [dragOver, setDragOver] = useState<number | null>(null);
+  // Drag reorder (pointer devices only)
+  const dragId = useRef<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
   const newInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -52,7 +57,11 @@ export default function ChecklistSection({ projectId }: ChecklistSectionProps) {
   const doneCount = items.filter((i) => i.done).length;
   const pct = total ? Math.round((doneCount / total) * 100) : 0;
 
-  // --- toggle (optimistic) ---
+  // Display order: active items (by manual position) first, then completed.
+  const active = items.filter((i) => !i.done).sort(byPosition);
+  const completed = items.filter((i) => i.done).sort(byPosition);
+
+  // --- toggle (optimistic) — checking an item lets it sink to the bottom ---
   async function toggle(item: ChecklistItem) {
     const next = !item.done;
     setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, done: next } : i)));
@@ -101,8 +110,7 @@ export default function ChecklistSection({ projectId }: ChecklistSectionProps) {
     setEditingId(null);
     if (!original || text === original.text) return;
     if (!text) {
-      // Emptying an item deletes it (Apple-Notes behavior).
-      await remove(original);
+      await remove(original); // emptying an item deletes it (Apple-Notes behavior)
       return;
     }
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, text } : i)));
@@ -126,28 +134,113 @@ export default function ChecklistSection({ projectId }: ChecklistSectionProps) {
     }
   }
 
-  // --- reordering ---
-  async function persistOrder(next: ChecklistItem[]) {
+  // --- reorder (active items only) ---
+  async function persistOrder(nextActive: ChecklistItem[]) {
+    const next = [...nextActive, ...completed].map((it, idx) => ({ ...it, position: idx }));
     setItems(next);
     try {
-      await reorderChecklist(next.map((it, idx) => ({ id: it.id, position: idx })));
+      await reorderChecklist(next.map((it) => ({ id: it.id, position: it.position })));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not reorder.');
     }
   }
-  function move(from: number, to: number) {
-    if (to < 0 || to >= items.length || from === to) return;
-    const next = [...items];
-    const [moved] = next.splice(from, 1);
-    next.splice(to, 0, moved);
-    void persistOrder(next);
+  function moveActive(from: number, to: number) {
+    if (to < 0 || to >= active.length || from === to) return;
+    const arr = [...active];
+    const [moved] = arr.splice(from, 1);
+    arr.splice(to, 0, moved);
+    void persistOrder(arr);
   }
-  function onDrop(to: number) {
-    const from = dragFrom.current;
-    dragFrom.current = null;
-    setDragOver(null);
-    if (from === null || from === to) return;
-    move(from, to);
+  function onDropActive(targetId: string) {
+    const from = active.findIndex((i) => i.id === dragId.current);
+    const to = active.findIndex((i) => i.id === targetId);
+    dragId.current = null;
+    setDragOverId(null);
+    if (from < 0 || to < 0 || from === to) return;
+    moveActive(from, to);
+  }
+
+  function renderItem(item: ChecklistItem, activeIdx: number | null) {
+    const isActive = activeIdx !== null;
+    return (
+      <li
+        key={item.id}
+        className={`check-item${item.done ? ' check-item--done' : ''}${dragOverId === item.id ? ' check-item--dragover' : ''}`}
+        onDragOver={isActive ? (e) => { e.preventDefault(); setDragOverId(item.id); } : undefined}
+        onDrop={isActive ? () => onDropActive(item.id) : undefined}
+      >
+        {/* drag handle — desktop only (hidden on touch via CSS); active items only */}
+        {isActive ? (
+          <span
+            className="check-item__handle"
+            draggable
+            onDragStart={() => (dragId.current = item.id)}
+            onDragEnd={() => {
+              dragId.current = null;
+              setDragOverId(null);
+            }}
+            aria-hidden="true"
+            title="Drag to reorder"
+          >
+            ⠿
+          </span>
+        ) : (
+          <span className="check-item__handle check-item__handle--spacer" aria-hidden="true" />
+        )}
+
+        <button
+          type="button"
+          className="check-box"
+          role="checkbox"
+          aria-checked={item.done}
+          onClick={() => toggle(item)}
+        >
+          {item.done && (
+            <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 13l4 4L19 7" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+        </button>
+
+        {editingId === item.id ? (
+          <input
+            className="check-item__edit"
+            value={editingText}
+            autoFocus
+            onChange={(e) => setEditingText(e.target.value)}
+            onBlur={commitEdit}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                void commitEdit();
+              } else if (e.key === 'Escape') {
+                setEditingId(null);
+              }
+            }}
+          />
+        ) : (
+          <span className="check-item__text" onClick={() => startEdit(item)}>
+            {item.text}
+          </span>
+        )}
+
+        {/* up/down reorder — the touch-friendly control (active items only) */}
+        {isActive && (
+          <span className="check-item__move">
+            <button type="button" aria-label="Move up" disabled={activeIdx === 0} onClick={() => moveActive(activeIdx, activeIdx - 1)}>
+              ↑
+            </button>
+            <button type="button" aria-label="Move down" disabled={activeIdx === active.length - 1} onClick={() => moveActive(activeIdx, activeIdx + 1)}>
+              ↓
+            </button>
+          </span>
+        )}
+
+        <button type="button" className="check-item__del" aria-label="Delete item" onClick={() => remove(item)}>
+          ×
+        </button>
+      </li>
+    );
   }
 
   if (loading) return <p className="muted-note">Loading checklist…</p>;
@@ -172,82 +265,8 @@ export default function ChecklistSection({ projectId }: ChecklistSectionProps) {
       {error && <div className="banner banner--error">{error}</div>}
 
       <ul className="check-list">
-        {items.map((item, i) => (
-          <li
-            key={item.id}
-            className={`check-item${item.done ? ' check-item--done' : ''}${dragOver === i ? ' check-item--dragover' : ''}`}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDragOver(i);
-            }}
-            onDrop={() => onDrop(i)}
-          >
-            {/* drag handle (pointer) */}
-            <span
-              className="check-item__handle"
-              draggable
-              onDragStart={() => (dragFrom.current = i)}
-              onDragEnd={() => {
-                dragFrom.current = null;
-                setDragOver(null);
-              }}
-              aria-hidden="true"
-              title="Drag to reorder"
-            >
-              ⠿
-            </span>
-
-            <button
-              type="button"
-              className="check-box"
-              role="checkbox"
-              aria-checked={item.done}
-              onClick={() => toggle(item)}
-            >
-              {item.done && (
-                <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M5 13l4 4L19 7" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              )}
-            </button>
-
-            {editingId === item.id ? (
-              <input
-                className="check-item__edit"
-                value={editingText}
-                autoFocus
-                onChange={(e) => setEditingText(e.target.value)}
-                onBlur={commitEdit}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    void commitEdit();
-                  } else if (e.key === 'Escape') {
-                    setEditingId(null);
-                  }
-                }}
-              />
-            ) : (
-              <span className="check-item__text" onClick={() => startEdit(item)}>
-                {item.text}
-              </span>
-            )}
-
-            {/* up/down reorder — the touch-friendly fallback for drag */}
-            <span className="check-item__move">
-              <button type="button" aria-label="Move up" disabled={i === 0} onClick={() => move(i, i - 1)}>
-                ↑
-              </button>
-              <button type="button" aria-label="Move down" disabled={i === items.length - 1} onClick={() => move(i, i + 1)}>
-                ↓
-              </button>
-            </span>
-
-            <button type="button" className="check-item__del" aria-label="Delete item" onClick={() => remove(item)}>
-              ×
-            </button>
-          </li>
-        ))}
+        {active.map((item, idx) => renderItem(item, idx))}
+        {completed.map((item) => renderItem(item, null))}
       </ul>
 
       {/* Add row — type and press Enter to keep going */}

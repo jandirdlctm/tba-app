@@ -1071,6 +1071,8 @@ button.stage__step:disabled {
 }
 .check-item__handle {
   flex: 0 0 auto;
+  width: 16px;
+  text-align: center;
   cursor: grab;
   color: #c9c5bf;
   font-size: 14px;
@@ -1080,6 +1082,16 @@ button.stage__step:disabled {
 }
 .check-item__handle:active {
   cursor: grabbing;
+}
+.check-item__handle--spacer {
+  cursor: default;
+}
+/* Native HTML5 drag doesn't work on touch — hide the handle on touch devices
+   and let the up/down buttons handle reordering there. */
+@media (pointer: coarse) {
+  .check-item__handle {
+    display: none;
+  }
 }
 
 /* Checkbox */

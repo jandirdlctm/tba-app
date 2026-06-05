@@ -1031,10 +1031,115 @@ button.stage__step:disabled {
 }
 
 /* --------------------------------------------------------------------------
+   Phase 3 (preview): profitability dashboard + financials
+   -------------------------------------------------------------------------- */
+.profit-pos {
+  color: var(--active);
+}
+.profit-neg {
+  color: #c0392b;
+}
+
+/* Per-project Financials tab */
+.profit-headline {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.profit-margin {
+  margin-top: 2px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.facts__row--total {
+  border-top: 0.5px solid var(--border);
+  padding-top: 8px;
+  margin-top: 2px;
+}
+.facts__row--total dt,
+.facts__row--total dd {
+  font-weight: 700;
+  font-size: 15px !important;
+}
+
+/* Portfolio KPI cards */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+}
+.kpi__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--muted);
+}
+.kpi__value {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+/* Per-project rows on the dashboard (tappable) */
+.dash-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 0;
+  border-bottom: 0.5px solid var(--border);
+  cursor: pointer;
+}
+.dash-row:last-child {
+  border-bottom: none;
+}
+.dash-row__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.dash-row__name {
+  font-size: 14.5px;
+  font-weight: 600;
+}
+.dash-row__profit {
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.dash-row__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.dash-row__meta .dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  flex: 0 0 auto;
+}
+
+/* --------------------------------------------------------------------------
    Wider screens — keep the phone-first column but breathe a little.
    -------------------------------------------------------------------------- */
 @media (min-width: 600px) {
   .topbar__title {
     font-size: 18px;
+  }
+  .kpi-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 }

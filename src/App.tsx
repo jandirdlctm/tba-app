@@ -6,6 +6,7 @@ import MapPage from './pages/MapPage';
 import AddProjectPage from './pages/AddProjectPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import AdminWorkersPage from './pages/AdminWorkersPage';
+import DashboardPage from './pages/DashboardPage';
 
 export default function App() {
   return (
@@ -47,6 +48,14 @@ export default function App() {
             element={
               <RequireAdmin>
                 <AdminWorkersPage />
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <RequireAdmin>
+                <DashboardPage />
               </RequireAdmin>
             }
           />

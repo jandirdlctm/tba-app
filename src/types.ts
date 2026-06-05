@@ -163,3 +163,26 @@ export interface Photo {
   caption: string | null;
   created_at: string;
 }
+
+// --- Phase 3 (preview): job profitability ----------------------------------
+
+/** Admin-only revenue + labor-rate inputs for a project (own table). */
+export interface ProjectFinancials {
+  project_id: string;
+  contract_value: number; // revenue / sell price
+  labor_rate: number; // company labor cost per hour
+  updated_at: string;
+}
+
+/** A computed profitability row (from the project_profitability() RPC). */
+export interface ProjectProfitability {
+  project_id: string;
+  project_name: string;
+  status: ProjectStatus;
+  contract_value: number;
+  materials_cost: number;
+  labor_hours: number;
+  labor_rate: number;
+  labor_cost: number;
+  profit: number;
+}

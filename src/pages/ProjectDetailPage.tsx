@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 import OverviewSection from '../components/OverviewSection';
 import MaterialsSection from '../components/MaterialsSection';
+import FinancialsSection from '../components/FinancialsSection';
 import HoursSection from '../components/HoursSection';
 import PhotosSection from '../components/PhotosSection';
 import { getProject } from '../lib/projects';
@@ -12,7 +13,7 @@ import type { Project } from '../types';
 // Phase 2: the real project detail page (replaces the Phase 1 stub).
 // Tabs are role-scoped: workers get Overview / Hours / Photos (no Materials),
 // admins get all four. RLS enforces this server-side regardless of the UI.
-type Tab = 'overview' | 'materials' | 'hours' | 'photos';
+type Tab = 'overview' | 'materials' | 'financials' | 'hours' | 'photos';
 
 export default function ProjectDetailPage() {
   const navigate = useNavigate();
@@ -52,6 +53,7 @@ export default function ProjectDetailPage() {
     ? [
         { key: 'overview', label: 'Overview' },
         { key: 'materials', label: 'Materials' },
+        { key: 'financials', label: 'Financials' },
         { key: 'hours', label: 'Hours' },
         { key: 'photos', label: 'Photos' },
       ]
@@ -104,6 +106,7 @@ export default function ProjectDetailPage() {
             )}
             {/* Defensive: even if a worker forced this tab, RLS blocks the data. */}
             {tab === 'materials' && isAdmin && <MaterialsSection projectId={project.id} />}
+            {tab === 'financials' && isAdmin && <FinancialsSection projectId={project.id} />}
             {tab === 'hours' && <HoursSection projectId={project.id} isAdmin={isAdmin} />}
             {tab === 'photos' && <PhotosSection projectId={project.id} />}
           </div>

@@ -60,6 +60,11 @@ export default function TopBar({ title, showAdd = false, onBack }: TopBarProps) 
                   Project map
                 </button>
                 {isAdmin && (
+                  <button type="button" className="menu__item" role="menuitem" onClick={() => { setMenuOpen(false); navigate('/dashboard'); }}>
+                    Profitability
+                  </button>
+                )}
+                {isAdmin && (
                   <button type="button" className="menu__item" role="menuitem" onClick={() => { setMenuOpen(false); navigate('/admin/workers'); }}>
                     Manage workers
                   </button>

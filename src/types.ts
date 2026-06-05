@@ -154,6 +154,22 @@ export interface NewTimeEntry {
   note: string | null;
 }
 
+/** A single checkable item in a project's scope checklist. */
+export interface ChecklistItem {
+  id: string;
+  project_id: string;
+  text: string;
+  done: boolean;
+  position: number; // manual sort order
+  created_at: string;
+}
+
+/** Done/total counts for a project's checklist (for the map popup). */
+export interface ChecklistProgress {
+  done: number;
+  total: number;
+}
+
 /** A row in `photos`. `photo_url` is a storage path, rendered via signed URL. */
 export interface Photo {
   id: string;

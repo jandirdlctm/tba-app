@@ -1,16 +1,19 @@
 import { useNavigate } from 'react-router-dom';
-import { STATUS_META, type Project } from '../types';
+import { STATUS_META, type ChecklistProgress, type Project } from '../types';
 
 interface ProjectPopupProps {
   project: Project;
+  /** Checklist done/total, shown as an at-a-glance progress chip. */
+  progress?: ChecklistProgress;
 }
 
 // Quick-glance card shown inside a Leaflet popup when a pin is tapped.
-// Intentionally high-level: name, address, status badge, work type, and the
-// scope note as "Needs". Full detail is Phase 2.
-export default function ProjectPopup({ project }: ProjectPopupProps) {
+// Intentionally high-level: name, address, status badge, work type, the scope
+// note as "Needs", and (if any) checklist progress.
+export default function ProjectPopup({ project, progress }: ProjectPopupProps) {
   const navigate = useNavigate();
   const meta = STATUS_META[project.status];
+  const pct = progress && progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
 
   return (
     <div className="popup">
@@ -44,6 +47,20 @@ export default function ProjectPopup({ project }: ProjectPopupProps) {
           {project.scope_note?.trim() || <em className="popup__muted">No scope note yet.</em>}
         </span>
       </div>
+
+      {progress && progress.total > 0 && (
+        <div className="popup__field">
+          <span className="popup__label">Checklist</span>
+          <div className="popup__progress">
+            <div className="popup__progress-bar">
+              <div className="popup__progress-fill" style={{ width: `${pct}%` }} />
+            </div>
+            <span className="popup__progress-text">
+              {progress.done} of {progress.total} done
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Phase 2: opens the full project detail page (role-scoped). */}
       <button

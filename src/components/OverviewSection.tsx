@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { updateProject } from '../lib/projects';
 import StageTracker from './StageTracker';
 import AssignmentsManager from './AssignmentsManager';
+import ChecklistSection from './ChecklistSection';
 import {
   STATUS_META,
   WORK_TYPES,
@@ -219,8 +220,11 @@ export default function OverviewSection({ project, isAdmin, onSaved }: OverviewS
         )}
       </section>
 
-      {/* Scope / needs note */}
+      {/* Scope / needs — free-text description (admin-edited) */}
       <ScopeNote project={project} isAdmin={isAdmin} onSaved={onSaved} />
+
+      {/* Checklist — actionable items any assigned user can manage */}
+      <ChecklistSection projectId={project.id} />
 
       {/* Assignments — admin only */}
       {isAdmin && <AssignmentsManager projectId={project.id} />}

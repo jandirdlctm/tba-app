@@ -4,8 +4,9 @@ import TopBar from '../components/TopBar';
 import StatusChips from '../components/StatusChips';
 import ProjectMap from '../components/ProjectMap';
 import { getProjects } from '../lib/projects';
+import { getChecklistProgress } from '../lib/checklist';
 import { useAuth } from '../context/AuthProvider';
-import type { Project, StatusFilter } from '../types';
+import type { ChecklistProgress, Project, StatusFilter } from '../types';
 
 // Screen 1 — Project Overview Map (home route "/").
 // Workers automatically see only their assigned projects (enforced by RLS on
@@ -15,6 +16,7 @@ export default function MapPage() {
   const { isAdmin } = useAuth();
 
   const [projects, setProjects] = useState<Project[]>([]);
+  const [progress, setProgress] = useState<Record<string, ChecklistProgress>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<StatusFilter>('all');
@@ -25,8 +27,16 @@ export default function MapPage() {
       try {
         setLoading(true);
         setError(null);
-        const rows = await getProjects();
-        if (!cancelled) setProjects(rows);
+        // Checklist progress is a nice-to-have for the popup — don't fail the
+        // whole map if it errors.
+        const [rows, prog] = await Promise.all([
+          getProjects(),
+          getChecklistProgress().catch(() => ({}) as Record<string, ChecklistProgress>),
+        ]);
+        if (!cancelled) {
+          setProjects(rows);
+          setProgress(prog);
+        }
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Something went wrong.');
       } finally {
@@ -82,7 +92,9 @@ export default function MapPage() {
           </div>
         )}
 
-        {!loading && !error && projects.length > 0 && <ProjectMap projects={visible} />}
+        {!loading && !error && projects.length > 0 && (
+          <ProjectMap projects={visible} progressByProject={progress} />
+        )}
       </div>
     </div>
   );

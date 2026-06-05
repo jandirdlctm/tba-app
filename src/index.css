@@ -1031,6 +1031,190 @@ button.stage__step:disabled {
 }
 
 /* --------------------------------------------------------------------------
+   Scope checklist
+   -------------------------------------------------------------------------- */
+.check-count {
+  flex: 0 0 auto;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.check-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--bg);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.check-progress__fill {
+  height: 100%;
+  background: var(--brand);
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+
+.check-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-radius: 6px;
+}
+.check-item--dragover {
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+.check-item__handle {
+  flex: 0 0 auto;
+  cursor: grab;
+  color: #c9c5bf;
+  font-size: 14px;
+  line-height: 1;
+  user-select: none;
+  touch-action: none;
+}
+.check-item__handle:active {
+  cursor: grabbing;
+}
+
+/* Checkbox */
+.check-box {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: #fff;
+  padding: 0;
+  transition: background 0.12s, border-color 0.12s;
+}
+.check-box--ghost {
+  border-style: dashed;
+  background: transparent;
+  cursor: default;
+}
+.check-item--done .check-box {
+  background: var(--active);
+  border-color: var(--active);
+}
+
+.check-item__text {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 14.5px;
+  line-height: 1.35;
+  cursor: text;
+  word-break: break-word;
+}
+.check-item--done .check-item__text {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.check-item__edit {
+  flex: 1 1 auto;
+  min-width: 0;
+  font: inherit;
+  font-size: 14.5px;
+  padding: 4px 6px;
+  border: 0.5px solid var(--brand);
+  border-radius: 6px;
+  outline: none;
+}
+
+/* Up/down (touch reorder) + delete */
+.check-item__move {
+  flex: 0 0 auto;
+  display: inline-flex;
+  gap: 2px;
+}
+.check-item__move button {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  border-radius: 6px;
+}
+.check-item__move button:hover:not(:disabled) {
+  background: var(--bg);
+  color: var(--ink);
+}
+.check-item__move button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.check-item__del {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1;
+  border-radius: 6px;
+}
+.check-item__del:hover {
+  background: #fcefee;
+  color: #9b2f25;
+}
+
+/* Add row */
+.check-add {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 0.5px solid var(--border);
+}
+.check-add__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  font: inherit;
+  font-size: 14.5px;
+  padding: 6px 0;
+  border: none;
+  outline: none;
+  background: transparent;
+}
+
+/* Popup checklist progress */
+.popup__progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.popup__progress-bar {
+  flex: 1 1 auto;
+  height: 6px;
+  border-radius: 999px;
+  background: #ececea;
+  overflow: hidden;
+}
+.popup__progress-fill {
+  height: 100%;
+  background: var(--brand);
+  border-radius: 999px;
+}
+.popup__progress-text {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* --------------------------------------------------------------------------
    Wider screens — keep the phone-first column but breathe a little.
    -------------------------------------------------------------------------- */
 @media (min-width: 600px) {

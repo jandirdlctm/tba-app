@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { STATUS_META, type Project, type ProjectStatus } from '../types';
+import { STATUS_META, type ChecklistProgress, type Project, type ProjectStatus } from '../types';
 import { markerIconFor } from './markerIcons';
 import ProjectPopup from './ProjectPopup';
 
@@ -16,6 +16,8 @@ import ProjectPopup from './ProjectPopup';
 interface ProjectMapProps {
   /** Already-filtered projects to display as pins. */
   projects: Project[];
+  /** Optional checklist progress per project id, for the popup. */
+  progressByProject?: Record<string, ChecklistProgress>;
 }
 
 // Salt Lake City — fallback center when there are no geocoded pins to fit.
@@ -94,7 +96,7 @@ function Legend() {
   );
 }
 
-export default function ProjectMap({ projects }: ProjectMapProps) {
+export default function ProjectMap({ projects, progressByProject }: ProjectMapProps) {
   const pins = projects.filter(hasCoords);
 
   return (
@@ -114,7 +116,7 @@ export default function ProjectMap({ projects }: ProjectMapProps) {
         {pins.map((p) => (
           <Marker key={p.id} position={[p.latitude, p.longitude]} icon={markerIconFor(p.status)}>
             <Popup className="tba-popup" closeButton={false} minWidth={240} maxWidth={280}>
-              <ProjectPopup project={p} />
+              <ProjectPopup project={p} progress={progressByProject?.[p.id]} />
             </Popup>
           </Marker>
         ))}

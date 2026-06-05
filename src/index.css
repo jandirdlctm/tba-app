@@ -1069,6 +1069,13 @@ button.stage__step:disabled {
   background: var(--bg);
   box-shadow: inset 0 0 0 1px var(--border);
 }
+/* item being picked up / dragged */
+.check-item--dragging {
+  background: var(--surface);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(31, 29, 27, 0.12);
+  z-index: 2;
+}
 .check-item__handle {
   flex: 0 0 auto;
   cursor: grab;
